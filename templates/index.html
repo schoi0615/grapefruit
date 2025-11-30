@@ -7,44 +7,63 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>💵 지출 기록 및 분석 대시보드</h1>
+    <div class="container">
+        <h1>💵 지출 기록 및 분석 대시보드</h1>
 
-    <div id="input-section">
-        <h2>새 지출 기록 추가</h2>
-        <form id="recordForm">
-            <input type="date" id="date" required>
-            <input type="text" id="category" placeholder="카테고리 (예: 식비)" required>
-            <input type="text" id="description" placeholder="내용" required>
-            <input type="number" id="amount" placeholder="금액 (원)" required>
-            <button type="submit">기록 추가</button>
-        </form>
-    </div>
-    
-    <hr>
+        <div id="input-section">
+            <h2>새 지출 기록 추가</h2>
+            <form id="recordForm">
+                <input type="date" id="date" required>
+                <input type="text" id="category" placeholder="카테고리 (예: 식비)" required>
+                <input type="text" id="description" placeholder="내용" required>
+                <input type="number" id="amount" placeholder="금액 (원)" required>
+                <button type="submit">기록 추가</button>
+            </form>
+        </div>
+        
+        <hr> 
+        
+        <div id="settings-section" style="float: left;">
+            <h2>🎨 차트 색상 설정</h2>
+            
+            <label for="colorMode">색상 적용 모드:</label>
+            <select id="colorMode">
+                <option value="default">기본 색상 (자동 순환)</option>
+                <option value="custom">카테고리별 사용자 지정</option>
+                <option value="size">크기 순 커스텀 (상위 5개 지정)</option>
+            </select>
 
-    <div id="chart-section">
-        <h2>월간 지출 분석</h2>
-        <canvas id="categoryChart"></canvas>
-    </div>
+            <div id="customColorInput" style="display:none; margin-top: 15px;">
+                <p>선택한 모드에 따라 아래에 설정 필드가 나타납니다.</p>
+            </div>
+        </div>
+        
+        <div id="chart-section" style="float: right;">
+            <h2>월간 지출 분석</h2>
+            <canvas id="categoryChart"></canvas>
+        </div>
+        
+        <div style="clear: both;"></div>
+        
+        <hr>
 
-    <hr>
-
-    <div id="list-section">
-        <h2>전체 지출 기록</h2>
-        <table id="recordsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>날짜</th>
-                    <th>카테고리</th>
-                    <th>내용</th>
-                    <th>금액</th>
-                    <th>관리</th>
-                </tr>
-            </thead>
-            <tbody>
+        <div id="list-section">
+            <h2>전체 지출 기록</h2>
+            <table id="recordsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>날짜</th>
+                        <th>카테고리</th>
+                        <th>내용</th>
+                        <th>금액</th>
+                        <th>관리</th>
+                    </tr>
+                </thead>
+                <tbody>
                 </tbody>
-        </table>
+            </table>
+        </div>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

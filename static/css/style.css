@@ -1,54 +1,188 @@
-/* static/css/style.css (기존 내용에 추가) */
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    background-color: #f4f4f9;
-    color: #333;
-}
-h1 {
-    color: #007bff;
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 10px;
-}
-hr { border: 0; height: 1px; background: #ccc; margin: 30px 0; }
+/* Google Font 'Noto Sans KR' 임포트 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
 
-/* 폼 스타일 */
+:root {
+    --primary-color: #007bff;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --bg-light: #f8f9fa;
+    --text-color: #343a40;
+    --border-color: #dee2e6;
+}
+
+/* 기본 스타일 및 폰트 설정 */
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    padding-bottom: 10px;
+    margin-bottom: 40px;
+    font-weight: 700;
+}
+
+h2 {
+    font-weight: 600;
+    color: var(--text-color);
+    margin-top: 25px;
+    /* 왼쪽의 파란색 바와 패딩 제거 */
+    border-left: none;
+    padding-left: 0;
+    margin-bottom: 20px;
+}
+
+hr { border: 0; height: 1px; background: var(--border-color); margin: 30px 0; }
+
+/* --- 공통 섹션 스타일 (폼, 목록만 흰 박스 유지) --- */
+#input-section, #list-section { 
+    background-color: #ffffff;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 30px;
+}
+/* input-section은 맨 위로 올라갔으므로 상단 마진을 0으로 설정 */
+#input-section {
+    margin-top: 0;
+}
+
+/* --- 차트 및 설정 섹션 (박스 제거 및 Float 적용) --- */
+#settings-section {
+    float: left; 
+    width: 30%; 
+    min-width: 280px;
+    padding: 0; /* 박스 제거를 위해 내부 패딩 제거 */
+    background-color: transparent; /* 배경 투명화 */
+    box-shadow: none; /* 그림자 제거 */
+    margin-right: 20px; /* 차트와의 간격 추가 */
+    
+    /* 차트 옆, 세로 중앙 정렬을 위한 스타일 */
+    /* 설정 섹션을 상위 컨테이너처럼 간주하여 텍스트를 중앙에 가깝게 조정 */
+    margin-top: 150px; /* 수동으로 아래로 내려 중앙에 가깝게 배치 */
+}
+
+#chart-section {
+    float: right; 
+    width: 65%; 
+    max-width: 600px;
+    padding: 0; /* 박스 제거를 위해 내부 패딩 제거 */
+    background-color: transparent; /* 배경 투명화 */
+    box-shadow: none; /* 그림자 제거 */
+    margin-top: 0;
+}
+
+#categoryChart {
+    max-width: 100%;
+    height: auto;
+}
+
+
+/* --- 폼 스타일 --- */
 #recordForm input, #recordForm button {
-    padding: 8px;
-    margin-right: 10px;
-    border: 1px solid #ddd;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
     border-radius: 4px;
+    font-size: 14px;
+}
+#recordForm {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+#recordForm input {
+    flex-grow: 1;
+    min-width: 100px;
+}
+#recordForm input[type="date"] {
+    flex-grow: 0;
+    width: 150px;
 }
 #recordForm button {
-    background-color: #28a745;
+    background-color: var(--success-color);
     color: white;
+    border: none;
     cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.2s;
+}
+#recordForm button:hover {
+    background-color: #1e7e34;
 }
 
-/* 테이블 스타일 */
+/* --- 테이블 및 설정 UI 스타일 --- */
 #recordsTable {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    font-size: 14px;
+    text-align: center;
 }
 #recordsTable th, #recordsTable td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
+    border: 1px solid var(--border-color);
+    padding: 10px;
 }
 #recordsTable th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 400;
+}
+#recordsTable tr:nth-child(even) {
     background-color: #f2f2f2;
 }
-
-/* 차트 영역 */
-#chart-section {
-    width: 600px; /* 차트 크기 제한 */
-    margin: 20px auto;
-}
 #recordsTable button {
-    background-color: #dc3545;
+    background-color: var(--danger-color);
     color: white;
     border: none;
     padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background-color 0.2s;
+}
+#recordsTable button:hover {
+    background-color: #c82333;
+}
+#settings-section select {
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    margin-left: 10px;
+}
+#customColorInput {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+}
+.color-setting-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    border-radius: 4px;
+    background-color: #fafafa;
+}
+.color-setting-item label {
+    font-weight: 500;
+    font-size: 14px;
+}
+.color-setting-item input[type="color"] {
+    width: 50px;
+    height: 30px;
+    padding: 0;
+    border: none;
     cursor: pointer;
 }

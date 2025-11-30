@@ -1,14 +1,25 @@
 // static/js/main.js
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 폼 요소와 테이블 tbody 요소를 가져옵니다.
     const form = document.getElementById('recordForm');
     const recordsBody = document.querySelector('#recordsTable tbody');
-    
-    // 페이지 로드 시 기록을 불러오고 시각화합니다.
+    const colorModeSelect = document.getElementById('colorMode');
+    const customColorInput = document.getElementById('customColorInput');
+
+    const DEFAULT_COLORS = [
+        '#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1', 
+        '#17a2b8', '#fd7e14', '#e83e8c', '#adb5bd', '#20c997'
+    ];
+
+    let currentRecords = [];
+
     fetchAndRenderRecords();
 
-    // --- 1. 기록 등록 (Create) 핸들러 ---
+    colorModeSelect.addEventListener('change', () => {
+        updateColorSettingsUI(currentRecords);
+        renderChart(getCategoryMap(currentRecords));
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -16,7 +27,6 @@ document.addEventListener('DOMContentLoaded', () => {
             date: document.getElementById('date').value,
             category: document.getElementById('category').value,
             description: document.getElementById('description').value,
-            // 금액을 숫자로 변환
             amount: parseFloat(document.getElementById('amount').value)
         };
 
@@ -29,25 +39,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (response.ok) {
             alert('기록 추가 성공!');
             form.reset();
-            fetchAndRenderRecords(); // 목록 새로고침
+            fetchAndRenderRecords();
         } else {
             const data = await response.json();
             alert(`기록 추가 실패: ${data.error}`);
         }
     });
 
-    // --- 2. 목록 조회 및 렌더링 (Read) ---
     async function fetchAndRenderRecords() {
         const response = await fetch('/api/records');
         const records = await response.json();
         
-        recordsBody.innerHTML = ''; // 기존 목록 초기화
+        currentRecords = records;
+        recordsBody.innerHTML = '';
 
-        let totalExpense = 0;
-        const categoryMap = {}; // 카테고리별 합계를 위한 맵
+        const categoryMap = {};
 
         records.forEach(record => {
-            // 테이블 행 생성
             const row = recordsBody.insertRow();
             row.insertCell(0).textContent = record.id;
             row.insertCell(1).textContent = record.date;
@@ -55,22 +63,73 @@ document.addEventListener('DOMContentLoaded', () => {
             row.insertCell(3).textContent = record.description;
             row.insertCell(4).textContent = record.amount.toLocaleString('ko-KR') + '원';
             
-            // 삭제 버튼 생성
             const deleteButton = document.createElement('button');
             deleteButton.textContent = '삭제';
             deleteButton.onclick = () => deleteRecord(record.id);
             row.insertCell(5).appendChild(deleteButton);
 
-            // 통계 데이터 계산
-            totalExpense += record.amount;
             categoryMap[record.category] = (categoryMap[record.category] || 0) + record.amount;
         });
         
-        // 시각화 함수 호출
+        updateColorSettingsUI(records);
         renderChart(categoryMap);
     }
 
-    // --- 3. 기록 삭제 (Delete) ---
+    function updateColorSettingsUI(records) {
+        customColorInput.innerHTML = '';
+        const mode = colorModeSelect.value;
+        
+        if (mode === 'default') {
+            customColorInput.style.display = 'none';
+            return;
+        }
+
+        customColorInput.style.display = 'flex';
+        
+        const categoryMap = getCategoryMap(records);
+        let targetCategories = [];
+
+        if (mode === 'custom') {
+            targetCategories = Object.keys(categoryMap);
+        } else if (mode === 'size') {
+            targetCategories = Object.entries(categoryMap)
+                                     .sort((a, b) => b[1] - a[1])
+                                     .slice(0, 5)
+                                     .map(item => item[0]);
+        }
+
+        if (targetCategories.length === 0) {
+             customColorInput.innerHTML = `<p>데이터가 없어 설정할 카테고리가 없습니다.</p>`;
+             return;
+        }
+
+        customColorInput.innerHTML = `<p style="width: 100%; margin-bottom: 10px;">${mode === 'custom' ? '모든 카테고리' : '상위 5개 카테고리'} 색상을 지정하세요.</p>`;
+        
+        targetCategories.forEach((cat, index) => {
+            const div = document.createElement('div');
+            div.className = 'color-setting-item';
+            div.innerHTML = `
+                <label>${cat} (${mode === 'size' ? (index + 1) + '위' : '커스텀'}):</label>
+                <input type="color" id="color-${cat}" data-category="${cat}" value="${DEFAULT_COLORS[index % DEFAULT_COLORS.length]}">
+            `;
+            customColorInput.appendChild(div);
+        });
+
+        customColorInput.querySelectorAll('input[type="color"]').forEach(input => {
+            input.addEventListener('input', () => {
+                renderChart(getCategoryMap(records));
+            });
+        });
+    }
+    
+    function getCategoryMap(records) {
+        const map = {};
+        records.forEach(r => {
+            map[r.category] = (map[r.category] || 0) + r.amount;
+        });
+        return map;
+    }
+
     async function deleteRecord(id) {
         if (!confirm('정말로 이 기록을 삭제하시겠습니까?')) return;
 
@@ -80,46 +139,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (response.ok) {
             alert('삭제 완료');
-            fetchAndRenderRecords(); // 목록 새로고침
+            fetchAndRenderRecords();
         } else {
             alert('삭제 실패');
         }
     }
 
-    // --- 4. 데이터 시각화 (Chart.js) ---
-    let chartInstance = null; // 차트 인스턴스 저장 변수
+    let chartInstance = null;
+
     function renderChart(categoryMap) {
         const ctx = document.getElementById('categoryChart').getContext('2d');
         
         if (chartInstance) {
-            chartInstance.destroy(); // 기존 차트가 있으면 파괴
+            chartInstance.destroy();
         }
 
         const labels = Object.keys(categoryMap);
         const data = Object.values(categoryMap);
+        const mode = colorModeSelect.value;
+        let backgroundColors = [];
+
+        // 데이터 정렬
+        const sortedCategories = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]);
+        const sortedLabels = sortedCategories.map(item => item[0]);
+        const sortedData = sortedCategories.map(item => item[1]);
+
+
+        if (mode === 'custom' || mode === 'size') {
+            const customColors = {};
+            customColorInput.querySelectorAll('input[type="color"]').forEach(input => {
+                customColors[input.dataset.category] = input.value;
+            });
+            
+            // 정렬된 순서대로 색상을 가져오거나 기본 색상을 적용
+            backgroundColors = sortedLabels.map((cat, index) => {
+                // 커스텀 색상이 있다면 사용, 없으면 기본 색상 사용
+                return customColors[cat] || DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+            });
+
+        } else { // 'default' 모드
+            // 정렬된 순서대로 기본 색상 적용
+            backgroundColors = sortedLabels.map((_, index) => DEFAULT_COLORS[index % DEFAULT_COLORS.length]);
+        }
+
 
         chartInstance = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: labels,
+                labels: sortedLabels,
                 datasets: [{
                     label: '카테고리별 지출 비율',
-                    data: data,
-                    backgroundColor: [
-                        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'
-                    ]
+                    data: sortedData,
+                    backgroundColor: backgroundColors,
                 }]
             },
             options: {
                 responsive: true,
                 plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: '월별 지출 카테고리 분포'
-                    }
+                    legend: { position: 'top' },
+                    title: { display: true, text: '월별 지출 카테고리 분포' }
                 }
             }
         });
