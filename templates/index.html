@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>간편 예산 관리 앱</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <h1>💵 지출 기록 및 분석 대시보드</h1>
+
+    <div id="input-section">
+        <h2>새 지출 기록 추가</h2>
+        <form id="recordForm">
+            <input type="date" id="date" required>
+            <input type="text" id="category" placeholder="카테고리 (예: 식비)" required>
+            <input type="text" id="description" placeholder="내용" required>
+            <input type="number" id="amount" placeholder="금액 (원)" required>
+            <button type="submit">기록 추가</button>
+        </form>
+    </div>
+    
+    <hr>
+
+    <div id="chart-section">
+        <h2>월간 지출 분석</h2>
+        <canvas id="categoryChart"></canvas>
+    </div>
+
+    <hr>
+
+    <div id="list-section">
+        <h2>전체 지출 기록</h2>
+        <table id="recordsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>날짜</th>
+                    <th>카테고리</th>
+                    <th>내용</th>
+                    <th>금액</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
